@@ -67,12 +67,12 @@ def generate_html():
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #09090b; color: #fff; margin: 0; padding: 40px; }}
         .header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }}
         
-        /* 💎 国信专属品牌徽标样式（已调大字号与内边距） */
-        .team-badge {{ display: inline-flex; align-items: center; background-color: rgba(103, 222, 249, 0.1); color: #67def9; padding: 10px 18px; border-radius: 24px; font-size: 16px; font-weight: 700; letter-spacing: 1.2px; margin-bottom: 16px; border: 1px solid rgba(103, 222, 249, 0.3); box-shadow: 0 0 12px rgba(103, 222, 249, 0.08); }}
-        .team-badge svg {{ width: 18px; height: 18px; margin-right: 8px; fill: currentColor; }}
+        /* 💎 国信专属品牌徽标样式（字号已放大至 34px，比主标题更大更醒目） */
+        .team-badge {{ display: inline-flex; align-items: center; background-color: rgba(103, 222, 249, 0.1); color: #67def9; padding: 12px 24px; border-radius: 30px; font-size: 34px; font-weight: 800; letter-spacing: 1.5px; margin-bottom: 20px; border: 1.5px solid rgba(103, 222, 249, 0.35); box-shadow: 0 0 16px rgba(103, 222, 249, 0.12); }}
+        .team-badge svg {{ width: 32px; height: 32px; margin-right: 12px; fill: currentColor; }}
         
-        .title h1 {{ margin: 0; font-size: 28px; font-weight: 600; }}
-        .title p {{ margin: 8px 0 0 0; color: #a1a1aa; font-size: 14px; }}
+        .title h1 {{ margin: 0; font-size: 24px; font-weight: 500; color: #d4d4d8; }}
+        .title p {{ margin: 6px 0 0 0; color: #a1a1aa; font-size: 14px; }}
         
         #charts-container {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }}
         
@@ -87,7 +87,7 @@ def generate_html():
 <body>
     <div class="header">
         <div class="title">
-            <!-- 💎 放大后的国信徽标 -->
+            <!-- 💎 显著放大的国信徽标 -->
             <div class="team-badge">
                 <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
                 国信计算机&通信
