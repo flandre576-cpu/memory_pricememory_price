@@ -8,14 +8,12 @@
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #09090b; color: #fff; margin: 0; padding: 40px; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
         
-        /* 💎 新增：国信专属品牌徽标样式 */
+        /* 💎 国信专属品牌徽标样式 */
         .team-badge { display: inline-flex; align-items: center; background-color: rgba(103, 222, 249, 0.1); color: #67def9; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: 1px; margin-bottom: 16px; border: 1px solid rgba(103, 222, 249, 0.25); box-shadow: 0 0 10px rgba(103, 222, 249, 0.05); }
         .team-badge svg { width: 14px; height: 14px; margin-right: 6px; fill: currentColor; }
         
         .title h1 { margin: 0; font-size: 28px; font-weight: 600; }
         .title p { margin: 8px 0 0 0; color: #a1a1aa; font-size: 14px; }
-        .download-btn { background-color: #67def9; color: #09090b; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: background-color 0.2s; }
-        .download-btn:hover { background-color: #a5ecfc; }
         
         #charts-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }
         
@@ -30,7 +28,7 @@
 <body>
     <div class="header">
         <div class="title">
-            <!-- 💎 新增：带有专业 Icon 的国信徽标 -->
+            <!-- 💎 带有专业 Icon 的国信徽标 -->
             <div class="team-badge">
                 <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
                 国信计算机&通信
@@ -38,7 +36,6 @@
             <h1>TrendForce 存储半导体价格看板</h1>
             <p>每日 DRAM 与 NAND Flash 现货均价高频追踪</p>
         </div>
-        <a href="内存价格每日追踪_20261022.xlsx" class="download-btn" download>📥 下载 Excel 数据</a>
     </div>
     <div id="charts-container"></div>
 
