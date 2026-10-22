@@ -57,7 +57,7 @@ def generate_html():
     # =========================================================================
     # 注入 ECharts 前端模板（完全复刻图二的深色 UI 与青色主题）
     # =========================================================================
-    html_content = f"""<!DOCTYPE html>
+html_content = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -66,6 +66,11 @@ def generate_html():
     <style>
         body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background-color: #09090b; color: #fff; margin: 0; padding: 40px; }}
         .header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }}
+        
+        /* 💎 新增：国信专属品牌徽标样式 */
+        .team-badge {{ display: inline-flex; align-items: center; background-color: rgba(103, 222, 249, 0.1); color: #67def9; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; letter-spacing: 1px; margin-bottom: 16px; border: 1px solid rgba(103, 222, 249, 0.25); box-shadow: 0 0 10px rgba(103, 222, 249, 0.05); }}
+        .team-badge svg {{ width: 14px; height: 14px; margin-right: 6px; fill: currentColor; }}
+        
         .title h1 {{ margin: 0; font-size: 28px; font-weight: 600; }}
         .title p {{ margin: 8px 0 0 0; color: #a1a1aa; font-size: 14px; }}
         .download-btn {{ background-color: #67def9; color: #09090b; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: background-color 0.2s; }}
@@ -84,6 +89,11 @@ def generate_html():
 <body>
     <div class="header">
         <div class="title">
+            <!-- 💎 新增：带有专业 Icon 的国信徽标 -->
+            <div class="team-badge">
+                <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+                国信计算机&通信
+            </div>
             <h1>TrendForce 存储半导体价格看板</h1>
             <p>每日 DRAM 与 NAND Flash 现货均价高频追踪</p>
         </div>
@@ -103,7 +113,6 @@ def generate_html():
             const dataArray = seriesData[header];
             let latestValue = '--';
             
-            // 倒序寻找最新有数据的天数
             for(let i = dataArray.length - 1; i >= 0; i--) {{
                 if(dataArray[i] !== null && dataArray[i] !== undefined) {{
                     latestValue = Number(dataArray[i]).toFixed(2);
@@ -115,7 +124,6 @@ def generate_html():
             card.className = 'chart-card';
             const chartId = 'chart-container-' + index;
             
-            // 清理并拆分标题（去除多余的 SUSD 标识，提取维度）
             const titleParts = header.split('^');
             const mainTitle = titleParts[0].replace(' (SUSD)', '').replace(' ($USD)', '').trim();
             const unitTitle = titleParts.length > 1 ? titleParts[1].trim() + ' (USD)' : 'USD';
@@ -132,7 +140,6 @@ def generate_html():
             `;
             container.appendChild(card);
 
-            // 延迟初始化以确保 Grid 布局尺寸稳定
             setTimeout(() => {{
                 const chartDom = document.getElementById(chartId);
                 if (!chartDom) return;
@@ -168,7 +175,7 @@ def generate_html():
                         connectNulls: true, 
                         symbol: 'circle',
                         symbolSize: 5,
-                        showSymbol: false, // 隐藏折线上的点以保持图表清爽，悬浮时会自动显示
+                        showSymbol: false,
                         lineStyle: {{ width: 2, color: '#67def9' }},
                         itemStyle: {{ color: '#67def9' }},
                         areaStyle: {{
