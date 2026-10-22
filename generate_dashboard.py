@@ -37,9 +37,9 @@ def generate_html():
     df_dram = preprocess_df(df_dram_raw)
     df_flash = preprocess_df(df_flash_raw)
 
-    # 提取盘平均指标
-    dram_cols = [col for col in df_dram.columns if '盘平均' in col]
-    flash_cols = [col for col in df_flash.columns if '盘平均' in col]
+    # 🎯 核心修复：只提取严格以“盘平均”结尾的列，自动剔除包含 .1, .2 等后缀的无效冗余数据
+    dram_cols = [col for col in df_dram.columns if str(col).endswith('盘平均')]
+    flash_cols = [col for col in df_flash.columns if str(col).endswith('盘平均')]
 
     df_combined = pd.concat([df_dram[dram_cols], df_flash[flash_cols]], axis=1)
     
