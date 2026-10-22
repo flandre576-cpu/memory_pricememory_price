@@ -27,6 +27,10 @@ def preprocess_df(df):
     df[date_col] = pd.to_datetime(df[date_col]).dt.strftime('%Y-%m-%d')
     df = df.sort_values(date_col)
     df.set_index(date_col, inplace=True)
+    
+    # 🎯 核心修复：清理历史数据中重复的日期行，强制去重并保留当天最后/最新的一条
+    df = df[~df.index.duplicated(keep='last')]
+    
     return df
 
 def generate_html():
