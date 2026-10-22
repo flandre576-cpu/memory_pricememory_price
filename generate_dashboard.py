@@ -21,7 +21,7 @@ def load_latest_data():
 def preprocess_df(df):
     # 展平多级表头
     df.columns = [f"{col[0]}^{col[1]}" if 'Unnamed' not in str(col[0]) else col[1] for col in df.columns]
-    date_col = [col for col in df.columns if '日期' in col][0]
+    date_col = [col for col in df.columns if '日期' in str(col)][0]
     
     # 日期格式化与排序
     df[date_col] = pd.to_datetime(df[date_col]).dt.strftime('%Y-%m-%d')
@@ -37,7 +37,7 @@ def generate_html():
     df_dram = preprocess_df(df_dram_raw)
     df_flash = preprocess_df(df_flash_raw)
 
-   # 提取盘平均指标
+    # 提取盘平均指标
     dram_cols = [col for col in df_dram.columns if str(col).endswith('盘平均')]
     flash_cols = [col for col in df_flash.columns if str(col).endswith('盘平均')]
 
@@ -55,9 +55,9 @@ def generate_html():
     series_dict = df_combined.to_dict(orient='list')
 
     # =========================================================================
-    # 注入 ECharts 前端模板（完全复刻图二的深色 UI 与青色主题）
+    # 注入 ECharts 前端模板（注意：html_content 变量赋值必须保持 4 个空格缩进）
     # =========================================================================
-html_content = f"""<!DOCTYPE html>
+    html_content = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
@@ -103,8 +103,8 @@ html_content = f"""<!DOCTYPE html>
 
     <script>
         // 动态注入的数据集
-        const dates = {json.dumps(dates_list)};
-        const seriesData = {json.dumps(series_dict)};
+        const dates = {json.dumps(dates_list, ensure_ascii=False)};
+        const seriesData = {json.dumps(series_dict, ensure_ascii=False)};
         
         const headers = Object.keys(seriesData);
         const container = document.getElementById('charts-container');
@@ -149,7 +149,7 @@ html_content = f"""<!DOCTYPE html>
                     tooltip: {{ 
                         trigger: 'axis',
                         formatter: function(params) {{
-                            let val = params[0].value !== null ? '$' + Number(params[0].value).toFixed(2) : '无数据';
+                            let val = params[0].value !== null && params[0].value !== undefined ? '$' + Number(params[0].value).toFixed(2) : '无数据';
                             return `${{params[0].axisValue}}<br/>${{params[0].marker}} <b>${{val}}</b>`;
                         }}
                     }},
@@ -195,11 +195,9 @@ html_content = f"""<!DOCTYPE html>
 </html>"""
 
     # 导出静态网页
-# 导出静态网页 (注意：这三行前面必须严格保持 4 个空格的缩进)
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_content)
     print("✅ ECharts 静态看板 index.html 生成成功！")
 
-# 这里的 if 必须顶格，前面没有任何空格
 if __name__ == "__main__":
     generate_html()
