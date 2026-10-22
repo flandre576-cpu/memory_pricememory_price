@@ -37,11 +37,15 @@ def generate_html():
     df_dram = preprocess_df(df_dram_raw)
     df_flash = preprocess_df(df_flash_raw)
 
-    # 🎯 核心修复：只提取严格以“盘平均”结尾的列，自动剔除包含 .1, .2 等后缀的无效冗余数据
+   # 提取盘平均指标
     dram_cols = [col for col in df_dram.columns if str(col).endswith('盘平均')]
     flash_cols = [col for col in df_flash.columns if str(col).endswith('盘平均')]
 
+    # 横向合并 DRAM 和 Flash 数据
     df_combined = pd.concat([df_dram[dram_cols], df_flash[flash_cols]], axis=1)
+    
+    # 🎯 核心修复：合并后强制按日期时间线重新升序排列，杜绝时间错乱乱序
+    df_combined = df_combined.sort_index()
     
     # 处理空值，保留两位小数
     df_combined = df_combined.round(2).replace({np.nan: None})
