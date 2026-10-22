@@ -19,18 +19,17 @@ def load_latest_data():
     return df_dram, df_flash, os.path.basename(latest_excel)
 
 def preprocess_df(df):
-    # 展平多级表头并提取日期
+    # 展平多级表头
     df.columns = [f"{col[0]}^{col[1]}" if 'Unnamed' not in str(col[0]) else col[1] for col in df.columns]
     date_col = [col for col in df.columns if '日期' in col][0]
     
-    # 格式化日期为字符串 YYYY-MM-DD
+    # 日期格式化与排序
     df[date_col] = pd.to_datetime(df[date_col]).dt.strftime('%Y-%m-%d')
     df = df.sort_values(date_col)
     df.set_index(date_col, inplace=True)
     
-    # 🎯 核心修复：清理历史数据中重复的日期行，强制去重并保留当天最后/最新的一条
+    # 🎯 核心修复：强制去重，防止历史表中存在重复日期导致合并崩溃
     df = df[~df.index.duplicated(keep='last')]
-    
     return df
 
 def generate_html():
@@ -38,25 +37,22 @@ def generate_html():
     df_dram = preprocess_df(df_dram_raw)
     df_flash = preprocess_df(df_flash_raw)
 
-    # ========================================================
-    # 🔍 数据提取配置区
-    # 当前逻辑：提取所有包含“盘平均”的列。
-    # 如果想提取其他指标，只需将 '盘平均' 修改为 '日高点'、'日低点' 或 '盘高点'。
-    # ========================================================
+    # 提取盘平均指标
     dram_cols = [col for col in df_dram.columns if '盘平均' in col]
     flash_cols = [col for col in df_flash.columns if '盘平均' in col]
 
-    # 合并 DRAM 和 Flash 数据
     df_combined = pd.concat([df_dram[dram_cols], df_flash[flash_cols]], axis=1)
     
-    # 处理空值为 None (以适配 JSON)，并将所有数值四舍五入保留 2 位小数
+    # 处理空值，保留两位小数
     df_combined = df_combined.round(2).replace({np.nan: None})
 
-    # 转化为 JS 变量所需的格式
+    # 将数据转化为前端渲染所需的列表与字典
     dates_list = df_combined.index.tolist()
     series_dict = df_combined.to_dict(orient='list')
 
-    # 生成内嵌了数据的 HTML
+    # =========================================================================
+    # 注入 ECharts 前端模板（完全复刻图二的深色 UI 与青色主题）
+    # =========================================================================
     html_content = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -68,14 +64,16 @@ def generate_html():
         .header {{ display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }}
         .title h1 {{ margin: 0; font-size: 28px; font-weight: 600; }}
         .title p {{ margin: 8px 0 0 0; color: #a1a1aa; font-size: 14px; }}
-        .download-btn {{ background-color: #3b82f6; color: #fff; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: background-color 0.2s; }}
-        .download-btn:hover {{ background-color: #60a5fa; }}
+        .download-btn {{ background-color: #67def9; color: #09090b; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 14px; transition: background-color 0.2s; }}
+        .download-btn:hover {{ background-color: #a5ecfc; }}
+        
         #charts-container {{ display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 24px; }}
+        
         .chart-card {{ background-color: #121214; border: 1px solid #27272a; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; transition: border-color 0.3s; }}
         .chart-card:hover {{ border-color: #3f3f46; }}
         .chart-header {{ display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; }}
-        .chart-title {{ font-size: 16px; font-weight: 600; color: #fff; }}
-        .chart-latest-value {{ font-size: 24px; font-weight: 700; color: #3b82f6; font-family: monospace; }}
+        .chart-title {{ font-size: 15px; font-weight: 600; color: #fff; line-height: 1.2; }}
+        .chart-latest-value {{ font-size: 24px; font-weight: 700; color: #67def9; font-family: monospace; }}
         .chart-body {{ height: 200px; min-height: 200px; width: 100%; }}
     </style>
 </head>
@@ -83,14 +81,14 @@ def generate_html():
     <div class="header">
         <div class="title">
             <h1>TrendForce 存储半导体价格看板</h1>
-            <p>每日 DRAM 与 NAND Flash 现货均价追踪 (当前追踪表格: {filename})</p>
+            <p>每日 DRAM 与 NAND Flash 现货均价高频追踪</p>
         </div>
-        <a href="{filename}" class="download-btn" download>📥 下载原数据表</a>
+        <a href="{filename}" class="download-btn" download>📥 下载 Excel 数据</a>
     </div>
     <div id="charts-container"></div>
 
     <script>
-        // 动态注入的数据
+        // 动态注入的数据集
         const dates = {json.dumps(dates_list)};
         const seriesData = {json.dumps(series_dict)};
         
@@ -100,6 +98,7 @@ def generate_html():
         headers.forEach((header, index) => {{
             const dataArray = seriesData[header];
             let latestValue = '--';
+            
             // 倒序寻找最新有数据的天数
             for(let i = dataArray.length - 1; i >= 0; i--) {{
                 if(dataArray[i] !== null && dataArray[i] !== undefined) {{
@@ -112,16 +111,16 @@ def generate_html():
             card.className = 'chart-card';
             const chartId = 'chart-container-' + index;
             
-            // 将 "DDR4 8Gx8^盘平均" 拆分展示
+            // 清理并拆分标题（去除多余的 SUSD 标识，提取维度）
             const titleParts = header.split('^');
-            const mainTitle = titleParts[0].trim();
-            const unitTitle = titleParts.length > 1 ? titleParts[1].trim() : '';
+            const mainTitle = titleParts[0].replace(' (SUSD)', '').replace(' ($USD)', '').trim();
+            const unitTitle = titleParts.length > 1 ? titleParts[1].trim() + ' (USD)' : 'USD';
 
             card.innerHTML = `
                 <div class="chart-header">
                     <div class="chart-title">
                         ${{mainTitle}}
-                        <div style="font-size: 11px; color: #71717a; font-weight: normal; margin-top: 2px;">${{unitTitle}}</div>
+                        <div style="font-size: 11px; color: #71717a; font-weight: normal; margin-top: 4px;">${{unitTitle}}</div>
                     </div>
                     <div class="chart-latest-value">$${{latestValue}}</div>
                 </div>
@@ -129,6 +128,7 @@ def generate_html():
             `;
             container.appendChild(card);
 
+            // 延迟初始化以确保 Grid 布局尺寸稳定
             setTimeout(() => {{
                 const chartDom = document.getElementById(chartId);
                 if (!chartDom) return;
@@ -164,13 +164,13 @@ def generate_html():
                         connectNulls: true, 
                         symbol: 'circle',
                         symbolSize: 5,
-                        showSymbol: true,   
-                        lineStyle: {{ width: 2, color: '#3b82f6' }},
-                        itemStyle: {{ color: '#3b82f6' }},
+                        showSymbol: false, // 隐藏折线上的点以保持图表清爽，悬浮时会自动显示
+                        lineStyle: {{ width: 2, color: '#67def9' }},
+                        itemStyle: {{ color: '#67def9' }},
                         areaStyle: {{
                             color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                                {{ offset: 0, color: 'rgba(59, 130, 246, 0.2)' }},
-                                {{ offset: 1, color: 'rgba(59, 130, 246, 0)' }}
+                                {{ offset: 0, color: 'rgba(103, 222, 249, 0.2)' }},
+                                {{ offset: 1, color: 'rgba(103, 222, 249, 0)' }}
                             ])
                         }}
                     }}]
@@ -186,7 +186,7 @@ def generate_html():
     # 导出静态网页
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_content)
-    print("✅ 静态看板 index.html 生成成功！")
+    print("✅ ECharts 静态看板 index.html 生成成功！")
 
 if __name__ == "__main__":
     generate_html()
