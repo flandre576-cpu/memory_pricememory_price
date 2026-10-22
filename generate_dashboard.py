@@ -195,9 +195,11 @@ html_content = f"""<!DOCTYPE html>
 </html>"""
 
     # 导出静态网页
+# 导出静态网页 (注意：这三行前面必须严格保持 4 个空格的缩进)
     with open("index.html", "w", encoding="utf-8") as f:
         f.write(html_content)
     print("✅ ECharts 静态看板 index.html 生成成功！")
 
+# 这里的 if 必须顶格，前面没有任何空格
 if __name__ == "__main__":
     generate_html()
