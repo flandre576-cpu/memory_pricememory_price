@@ -1,0 +1,53 @@
+name: 自动更新 TrendForce 内存价格与看板
+
+on:
+  schedule:
+    # 每天北京时间 16:00 (UTC 8:00) 运行，确保当日数据已更新
+    - cron: '0 8 * * *'
+  workflow_dispatch: 
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 配置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 安装 Python 库
+        run: pip install -r requirements.txt
+
+      - name: 下载历史 Excel 备份 (首次运行找不到文件会自动跳过)
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          name: memory-price-database
+          path: .
+        continue-on-error: true
+
+      - name: 运行核心爬虫抓取数据
+        run: python run.py
+
+      - name: 上传最新 Excel 备份到 Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: memory-price-database
+          path: "内存价格每日追踪_*.xlsx"
+          retention-days: 7
+
+      - name: 生成静态可视化 HTML 看板
+        run: python generate_dashboard.py
+
+      - name: 部署到 gh-pages 分支
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./
+          publish_branch: gh-pages
+          keep_files: false
+          exclude_assets: '*.xlsx,*.py,*.txt,*.yml'
